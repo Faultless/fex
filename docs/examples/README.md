@@ -16,9 +16,27 @@ Real, working scripts — copy any of them into `~/.fex/scripts/` and they show 
 | [`component-scaffold.ts`](./component-scaffold.ts) | `fex component-scaffold <Name>` — scaffolds a MUI-flavored component + RTL test under `src/components/`. |
 | [`scene-scaffold.ts`](./scene-scaffold.ts) | `fex scene-scaffold <name>` — scaffolds a Three.js scene module (camera, renderer, animation loop). |
 | [`e2e-smoke.ts`](./e2e-smoke.ts) | `fex e2e-smoke <url> [flowName]` — golden-path smoke check composed from a named flow (`ctx.loadFlow`) instead of re-deriving click sequences per script. Requires `bun add -D playwright && bunx playwright install chromium`. |
+| [`preflight.ts`](./preflight.ts) | `fex preflight [url] [apiUrl] [p99BudgetMs]` — diff-aware pre-push gate: `git.changedFiles()` decides which judges run (UI files → screenshot diff vs a stored baseline, API files → autocannon p99 budget), composes `env-diff` via `ctx.runScript` when installed, then confirm-gates `git push`. |
 
 These are starting points, not a fixed API — the point of `fex` is that editing one of
 these is just editing a TypeScript file, same as any other script in your project.
+
+## Composing: `ctx.runScript` and pipelines
+
+Scripts compose two ways. In-process, any script can call another by name —
+`await ctx.runScript("env-diff")` — like a function with its own fresh `ctx`
+(see `preflight.ts`). Declaratively, `~/.fex/config.toml` can name pipelines of
+fex command lines (built-ins and scripts alike), run in order and stopping at the
+first failure:
+
+```toml
+[pipelines]
+preflight = ["env-diff", "vr test http://localhost:3000 --name app", "preflight"]
+```
+
+```sh
+fex run preflight
+```
 
 ## Flows: reusable step helpers for your app
 

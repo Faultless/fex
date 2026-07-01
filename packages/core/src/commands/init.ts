@@ -41,7 +41,10 @@ export async function initCommand(): Promise<void> {
   }
 
   if (!existsSync(configPath())) {
-    await Bun.write(configPath(), '# fex config\n# [aliases]\n# foo = "bar"\n');
+    await Bun.write(
+      configPath(),
+      '# fex config — see `fex run`\n# [pipelines]\n# preflight = ["env-diff", "vr test http://localhost:3000 --name app"]\n',
+    );
     createdSomething = true;
   }
 

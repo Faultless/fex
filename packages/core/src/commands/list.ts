@@ -1,5 +1,4 @@
-import { log } from "@fex/kit";
-import { discoverScripts } from "../discovery";
+import { discoverScripts, log } from "@fex/kit";
 
 export async function listCommand(): Promise<void> {
   const { scripts, skipped } = await discoverScripts();

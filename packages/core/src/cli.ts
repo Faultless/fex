@@ -1,5 +1,11 @@
 #!/usr/bin/env bun
-import { type ScriptModule, createContext, log } from "@fex/kit";
+import {
+  type DiscoveredScript,
+  type ScriptModule,
+  createContext,
+  discoverScripts,
+  log,
+} from "@fex/kit";
 import { Command } from "commander";
 import { harCommand } from "./commands/har";
 import { initCommand } from "./commands/init";
@@ -9,9 +15,9 @@ import { mockCommand } from "./commands/mock";
 import { newCommand } from "./commands/new";
 import { newFlowCommand } from "./commands/new-flow";
 import { portCommand } from "./commands/port";
+import { runCommand } from "./commands/run";
 import { screenshotDiffCommand } from "./commands/screenshot-diff";
 import { vrCommand } from "./commands/vr";
-import { type DiscoveredScript, discoverScripts } from "./discovery";
 
 const program = new Command();
 program.name("fex").description("A frontend developer's scriptable toolbox").version("0.0.1");
@@ -29,6 +35,11 @@ program
   .action(newFlowCommand);
 
 program.command("list").description("List discovered scripts").action(listCommand);
+
+program
+  .command("run <pipeline>")
+  .description("Run a [pipelines] entry from config.toml — each step is a fex command")
+  .action(runCommand);
 
 program
   .command("screenshot-diff <before> <after>")

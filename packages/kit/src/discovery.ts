@@ -1,7 +1,8 @@
 import { existsSync } from "node:fs";
 import { readdir, stat } from "node:fs/promises";
 import { join } from "node:path";
-import { type ScriptMeta, type ScriptModule, homeDir, scriptsDir } from "@fex/kit";
+import { homeDir, scriptsDir } from "./home";
+import type { ScriptMeta, ScriptModule } from "./types";
 
 export interface DiscoveredScript {
   file: string;

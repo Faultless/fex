@@ -9,6 +9,7 @@ export * as visual from "./visual";
 export * as load from "./load";
 export * as mock from "./mock";
 export * from "./flows";
+export * from "./discovery";
 export * from "./home";
 export * from "./ui";
 export * from "./context";
