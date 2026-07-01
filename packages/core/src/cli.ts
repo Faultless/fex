@@ -1,6 +1,7 @@
 #!/usr/bin/env bun
 import { type ScriptModule, createContext, log } from "@fex/kit";
 import { Command } from "commander";
+import { harCommand } from "./commands/har";
 import { initCommand } from "./commands/init";
 import { listCommand } from "./commands/list";
 import { loadCommand } from "./commands/load";
@@ -9,6 +10,7 @@ import { newCommand } from "./commands/new";
 import { newFlowCommand } from "./commands/new-flow";
 import { portCommand } from "./commands/port";
 import { screenshotDiffCommand } from "./commands/screenshot-diff";
+import { vrCommand } from "./commands/vr";
 import { type DiscoveredScript, discoverScripts } from "./discovery";
 
 const program = new Command();
@@ -34,6 +36,25 @@ program
   .option("-o, --out <path>", "diff image output path")
   .option("-t, --threshold <n>", "per-pixel color threshold, 0-1")
   .action(screenshotDiffCommand);
+
+program
+  .command("vr <action> <url>")
+  .description("Visual regression against stored baselines — `vr update` / `vr test`")
+  .option("-n, --name <name>", "baseline set name (default: URL host)")
+  .option("--viewports <list>", "comma-separated: mobile, tablet, desktop", "desktop")
+  .option("--dark", "also capture/compare a dark color-scheme variant")
+  .option("--mask <selectors>", "comma-separated CSS selectors to mask before capture")
+  .option("--flow <name:step>", "run a flow step against the page before capturing")
+  .option("-t, --threshold <n>", "per-pixel color threshold, 0-1")
+  .option("--fail-ratio <n>", "diff ratio above which the test fails")
+  .action(vrCommand);
+
+program
+  .command("har <action> <url>")
+  .description("Record or replay API traffic as a HAR — `har record` / `har replay`")
+  .option("-f, --file <path>", "HAR file path", "fex.har")
+  .option("--filter <glob>", "only record/replay matching request URLs", "**/api/**")
+  .action(harCommand);
 
 program
   .command("load <url>")

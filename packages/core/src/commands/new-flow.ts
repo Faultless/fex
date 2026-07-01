@@ -4,8 +4,9 @@ import { flowsDir, intro, isCancel, log, outro, prompt } from "@fex/kit";
 function template(name: string): string {
   return `// A flow is just an object of named, reusable Playwright step functions for
 // this one app — write the selectors/click-sequences once, reuse them from any
-// script via \`ctx.loadFlow("${name}")\`. No import needed here: flow files live
-// outside node_modules resolution, so stick to plain objects (or \`import type\`).
+// script via \`ctx.loadFlow("${name}")\`, or point \`fex vr --flow ${name}:<step>\`
+// at one. \`import type { Page } from "@fex/kit"\` works here (fex init installs
+// @fex/kit into ~/.fex); other runtime imports need a \`bun add\` inside ~/.fex.
 
 export default {
   async clickThroughSteps(page) {

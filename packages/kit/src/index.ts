@@ -4,6 +4,7 @@ export * from "./http";
 export * from "./clipboard";
 export * as git from "./git";
 export * as browser from "./browser";
+export type { CaptureOptions, Page, PageOptions } from "./browser";
 export * as visual from "./visual";
 export * as load from "./load";
 export * as mock from "./mock";
