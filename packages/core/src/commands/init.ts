@@ -1,7 +1,6 @@
 import { existsSync } from "node:fs";
 import { mkdir } from "node:fs/promises";
-import { intro, log, outro } from "@fex/kit";
-import { configPath, homeDir, scriptsDir } from "../paths";
+import { configPath, flowsDir, homeDir, intro, log, outro, scriptsDir } from "@fex/kit";
 
 export async function initCommand(): Promise<void> {
   intro("fex init");
@@ -12,9 +11,12 @@ export async function initCommand(): Promise<void> {
     log.info(`Already initialized at ${dir}`);
   } else {
     await mkdir(scriptsDir(), { recursive: true });
+    await mkdir(flowsDir(), { recursive: true });
     await Bun.write(configPath(), '# fex config\n# [aliases]\n# foo = "bar"\n');
     log.success(`Created ${dir}`);
   }
 
-  outro("Drop .ts scripts into scripts/ and run `fex list` to see them.");
+  outro(
+    "Drop .ts scripts into scripts/ (and reusable step helpers into flows/) then run `fex list`.",
+  );
 }

@@ -9,6 +9,10 @@ export function scriptsDir(): string {
   return join(homeDir(), "scripts");
 }
 
+export function flowsDir(): string {
+  return join(homeDir(), "flows");
+}
+
 export function configPath(): string {
   return join(homeDir(), "config.toml");
 }

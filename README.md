@@ -15,10 +15,12 @@ write it once as a tiny TypeScript script, and it's a permanent, discoverable co
 ## Packages
 
 - **`packages/core`** — the `fex` CLI: discovers scripts in `~/.fex/scripts`, registers
-  them as subcommands, and ships `init`/`new`/`list` built-ins.
+  them as subcommands, and ships `init`/`new`/`new-flow`/`list`/`screenshot-diff`/
+  `load`/`mock`/`port` built-ins.
 - **`packages/kit`** (`@fex/kit`) — the SDK every script imports: shell (`$`, via Bun's
   native shell), file globbing/find-replace, a `fetch` wrapper with presets and a
-  jq-lite path picker, clipboard, git helpers, and `@clack/prompts`-based UI.
+  jq-lite path picker, clipboard, git helpers, `@clack/prompts`-based UI, and opt-in
+  browser automation / visual diffing / load testing / mock data generation (see below).
 
 ## Quickstart
 
@@ -59,8 +61,25 @@ export async function run(ctx: FexContext) {
 
 [`docs/examples/`](./docs/examples) has real, working starter scripts (env diffing, API
 probing, Astro content linting, Three.js asset auditing, Flutter build helpers, a guided
-publish checklist, MUI/Three.js scaffolders) — copy any of them into `~/.fex/scripts/`
-to try it.
+publish checklist, MUI/Three.js scaffolders, an e2e smoke check) — copy any of them into
+`~/.fex/scripts/` to try it.
+
+## Testing & data built-ins
+
+These are peer-dependency features — the underlying library only installs if you use
+it, so a bare `fex` install stays light.
+
+| Command | Backs onto | What it's for |
+| --- | --- | --- |
+| `fex screenshot-diff <before> <after>` | Playwright + pixelmatch | Visual regression: pass two URLs (captured live) or two PNG paths, get a diff ratio and a diff image. `bun add -D playwright pixelmatch pngjs @types/pngjs && bunx playwright install chromium` |
+| `fex load <url>` | autocannon | Quick stress test: req/s, p50/p97.5/p99 latency. `bun add -D autocannon` |
+| `fex mock [count]` | @faker-js/faker | Guided wizard or `--from sample.json` shape-inference to generate fixtures/MSW-ready data. `bun add -D @faker-js/faker` |
+| `fex port <number>` | none (built-in) | Find what's listening on a port, optionally kill it. |
+
+For app-specific e2e flows (login, multi-step forms, checkout), `ctx.browser.withPage`
+is the low-level primitive — see [Flows](./docs/examples#flows-reusable-step-helpers-for-your-app)
+in the examples doc for how `fex new-flow` gives you a place to write reusable click
+sequences once instead of re-deriving them in every script.
 
 ## Config
 

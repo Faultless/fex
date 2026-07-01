@@ -1,6 +1,5 @@
 import { existsSync } from "node:fs";
-import { intro, isCancel, log, outro, prompt } from "@fex/kit";
-import { scriptsDir } from "../paths";
+import { intro, isCancel, log, outro, prompt, scriptsDir } from "@fex/kit";
 
 function template(name: string, description: string): string {
   return `import type { FexContext } from "@fex/kit";

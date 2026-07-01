@@ -1,4 +1,4 @@
-import { configPath } from "./paths";
+import { configPath } from "@fex/kit";
 
 export interface FexConfig {
   aliases?: Record<string, string>;
