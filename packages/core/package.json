@@ -1,0 +1,21 @@
+{
+  "name": "fex-cli",
+  "version": "0.0.1",
+  "private": true,
+  "description": "A frontend developer's scriptable toolbox — the fex CLI",
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "fex": "./src/cli.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@fex/kit": "workspace:*",
+    "commander": "^13.1.0"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  }
+}
