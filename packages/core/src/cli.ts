@@ -1,5 +1,5 @@
 #!/usr/bin/env bun
-import { createContext } from "@fex/kit";
+import { type ScriptModule, createContext, log } from "@fex/kit";
 import { Command } from "commander";
 import { initCommand } from "./commands/init";
 import { listCommand } from "./commands/list";
@@ -9,7 +9,7 @@ import { newCommand } from "./commands/new";
 import { newFlowCommand } from "./commands/new-flow";
 import { portCommand } from "./commands/port";
 import { screenshotDiffCommand } from "./commands/screenshot-diff";
-import { discoverScripts } from "./discovery";
+import { type DiscoveredScript, discoverScripts } from "./discovery";
 
 const program = new Command();
 program.name("fex").description("A frontend developer's scriptable toolbox").version("0.0.1");
@@ -56,16 +56,43 @@ program
   .description("Find (and optionally kill) whatever is listening on a port")
   .action(portCommand);
 
-const scripts = await discoverScripts();
+async function runScript(script: DiscoveredScript, args: string[]): Promise<void> {
+  let mod: Partial<ScriptModule>;
+  try {
+    mod = (await import(script.file)) as Partial<ScriptModule>;
+  } catch (error) {
+    log.error(`${script.file} failed to load:\n${error instanceof Error ? error.message : error}`);
+    process.exitCode = 1;
+    return;
+  }
+  if (typeof mod.run !== "function") {
+    log.error(`${script.file} no longer exports a "run" function.`);
+    process.exitCode = 1;
+    return;
+  }
+  await mod.run(createContext(args));
+}
+
+const { scripts, skipped } = await discoverScripts();
+const taken = new Set([...program.commands.map((cmd) => cmd.name()), "help"]);
+
 for (const script of scripts) {
+  const name = script.meta.name;
+  if (taken.has(name)) {
+    console.warn(`fex: skipping ${script.file} — "${name}" is already taken`);
+    continue;
+  }
+  taken.add(name);
   program
-    .command(script.meta.name)
+    .command(name)
     .description(script.meta.description)
     .allowUnknownOption()
     .argument("[args...]", "arguments forwarded to the script")
-    .action(async (args: string[]) => {
-      await script.run(createContext(args));
-    });
+    .action((args: string[]) => runScript(script, args));
+}
+
+for (const entry of skipped) {
+  console.warn(`fex: skipping broken script ${entry.file}: ${entry.reason}`);
 }
 
 await program.parseAsync(process.argv);

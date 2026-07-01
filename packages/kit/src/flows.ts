@@ -2,11 +2,10 @@ import { existsSync } from "node:fs";
 import { flowsDir } from "./home";
 
 /**
- * The shape a flow file's default export must satisfy. Flow files live outside any
- * node_modules tree (they're dynamic-imported by absolute path from ~/.fex/flows), so
- * they can only use `@fex/kit` as a type (`import type`, `satisfies`) — a runtime
- * import from there would fail to resolve. Write `export default {...} satisfies
- * FlowSteps` rather than wrapping in a function.
+ * The shape a flow file's default export must satisfy. `fex init` gives ~/.fex its own
+ * package.json with `@fex/kit` installed, so flow files can `import type` from it out
+ * of the box; any extra runtime dependency needs a `bun add` inside ~/.fex first.
+ * Write `export default {...} satisfies FlowSteps` rather than wrapping in a function.
  */
 export type FlowSteps = Record<string, (...args: never[]) => Promise<unknown>>;
 

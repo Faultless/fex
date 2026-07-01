@@ -1,3 +1,4 @@
+import type { PNG as PNGType } from "pngjs";
 import { optionalImport } from "./lazy";
 
 const INSTALL_HINT = "bun add -D pixelmatch pngjs @types/pngjs";
@@ -16,9 +17,33 @@ export interface DiffResult {
   totalPixels: number;
   diffRatio: number;
   passed: boolean;
+  /** True when the inputs had different dimensions and were padded to the union size. */
+  sizeMismatch: boolean;
 }
 
-/** Pixel-diffs two same-size PNGs, writes a visual diff to `outDiffPath`. */
+/** Fill color for padded regions — loud so grown/shrunk areas always register as diff. */
+const PAD_RGBA = [255, 0, 255, 255] as const;
+
+function padTo(img: PNGType, width: number, height: number, PNG: typeof PNGType): PNGType {
+  if (img.width === width && img.height === height) return img;
+  const out = new PNG({ width, height });
+  for (let i = 0; i < out.data.length; i += 4) {
+    out.data[i] = PAD_RGBA[0];
+    out.data[i + 1] = PAD_RGBA[1];
+    out.data[i + 2] = PAD_RGBA[2];
+    out.data[i + 3] = PAD_RGBA[3];
+  }
+  for (let y = 0; y < img.height; y++) {
+    img.data.copy(out.data, y * width * 4, y * img.width * 4, (y + 1) * img.width * 4);
+  }
+  return out;
+}
+
+/**
+ * Pixel-diffs two PNGs, writes a visual diff to `outDiffPath`. Different-size inputs
+ * (e.g. a full-page screenshot of a page that grew) are padded to the union size and
+ * the padding counts as diff, rather than erroring out.
+ */
 export async function diffImages(
   pathA: string,
   pathB: string,
@@ -35,16 +60,15 @@ export async function diffImages(
     Bun.file(pathA).arrayBuffer(),
     Bun.file(pathB).arrayBuffer(),
   ]);
-  const imgA = PNG.sync.read(Buffer.from(bufferA));
-  const imgB = PNG.sync.read(Buffer.from(bufferB));
+  const rawA = PNG.sync.read(Buffer.from(bufferA));
+  const rawB = PNG.sync.read(Buffer.from(bufferB));
 
-  if (imgA.width !== imgB.width || imgA.height !== imgB.height) {
-    throw new Error(
-      `Image size mismatch: ${pathA} is ${imgA.width}x${imgA.height}, ${pathB} is ${imgB.width}x${imgB.height}`,
-    );
-  }
+  const width = Math.max(rawA.width, rawB.width);
+  const height = Math.max(rawA.height, rawB.height);
+  const sizeMismatch = rawA.width !== rawB.width || rawA.height !== rawB.height;
+  const imgA = padTo(rawA, width, height, PNG);
+  const imgB = padTo(rawB, width, height, PNG);
 
-  const { width, height } = imgA;
   const diff = new PNG({ width, height });
   const diffPixels = pixelmatch(imgA.data, imgB.data, diff.data, width, height, {
     threshold: options.threshold ?? 0.1,
@@ -56,5 +80,5 @@ export async function diffImages(
   const diffRatio = diffPixels / totalPixels;
   const passed = diffRatio <= (options.failRatio ?? 0.001);
 
-  return { width, height, diffPixels, totalPixels, diffRatio, passed };
+  return { width, height, diffPixels, totalPixels, diffRatio, passed, sizeMismatch };
 }

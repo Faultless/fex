@@ -1,4 +1,6 @@
 import { existsSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { browser, intro, log, outro, visual } from "@fex/kit";
 
 export interface ScreenshotDiffOptions {
@@ -12,7 +14,7 @@ function isUrl(value: string): boolean {
 
 async function resolveImage(input: string, label: string): Promise<string> {
   if (!isUrl(input)) return input;
-  const path = `/tmp/fex-screenshot-${label}-${Date.now()}.png`;
+  const path = join(tmpdir(), `fex-screenshot-${label}-${Date.now()}.png`);
   await browser.capture(input, path);
   return path;
 }

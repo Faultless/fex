@@ -1,6 +1,13 @@
+/** Substrings excluded from every scan unless `defaultIgnores: false` — bulk
+ * find-replace should never silently rewrite dependencies or git internals. */
+const DEFAULT_IGNORES = ["node_modules", ".git"];
+
 export interface FindFilesOptions {
   cwd?: string;
+  /** Path substrings to skip, merged with the defaults (node_modules, .git). */
   ignore?: string[];
+  /** Set false to scan node_modules/.git too. */
+  defaultIgnores?: boolean;
 }
 
 export async function findFiles(
@@ -8,10 +15,14 @@ export async function findFiles(
   options: FindFilesOptions = {},
 ): Promise<string[]> {
   const cwd = options.cwd ?? process.cwd();
+  const ignore = [
+    ...(options.defaultIgnores === false ? [] : DEFAULT_IGNORES),
+    ...(options.ignore ?? []),
+  ];
   const glob = new Bun.Glob(pattern);
   const results: string[] = [];
   for await (const file of glob.scan({ cwd, dot: false })) {
-    if (options.ignore?.some((fragment) => file.includes(fragment))) continue;
+    if (ignore.some((fragment) => file.includes(fragment))) continue;
     results.push(file);
   }
   return results;
